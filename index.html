@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#101820">
 <link rel="manifest" href="./manifest.json">
 <title>3D Endless Car Racing</title>
@@ -43,9 +43,34 @@ canvas{display:block;touch-action:none}
  html,body {width:100vh;height:100vw;min-height:0;overflow:hidden;}
  body {position:absolute;top:0;left:100vw;transform:rotate(90deg);transform-origin:top left;}
 }
+
+/* MOBILE FULLSCREEN PATCH */
+html,body{position:fixed;inset:0;width:100%;height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;}
+#hud{top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));gap:6px;}
+.pill{padding:clamp(5px,1.4vw,9px) clamp(7px,2vw,12px);min-width:0;border-radius:12px;}
+.pill small{font-size:clamp(8px,1.8vw,10px);}
+.pill strong{font-size:clamp(14px,3.8vw,20px);}
+#hint{top:clamp(60px,10vh,83px);font-size:clamp(9px,2vw,11px);max-width:90vw;white-space:normal;text-align:center;}
+#controls{bottom:max(8px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));gap:6px;}
+.control{width:clamp(46px,9vw,64px);height:clamp(46px,9vw,64px);font-size:clamp(10px,2vw,13px);}
+.control .symbol{font-size:clamp(18px,3.5vw,24px);line-height:1.05;}
+#steerWheel{width:clamp(66px,14vw,100px);height:clamp(66px,14vw,100px);}
+@media (orientation:landscape) and (max-height:500px){
+ #hud{top:5px;left:7px;right:7px;} .pill{padding:4px 8px;} .pill small{font-size:8px;margin-bottom:1px;} .pill strong{font-size:14px;}
+ #hint{top:48px;font-size:9px;padding:4px 8px;}
+ #controls{bottom:max(5px,env(safe-area-inset-bottom));padding-left:8px;padding-right:8px;}
+ .control{width:48px;height:48px;} #steerWheel{width:68px;height:68px;}
+}
+#fullscreenBtn{position:fixed;right:max(8px,env(safe-area-inset-right));top:max(60px,calc(env(safe-area-inset-top) + 42px));z-index:10000;border:1px solid #ffffff80;border-radius:10px;background:#101a28cc;color:#fff;padding:7px 9px;font-weight:700;font-size:12px;touch-action:manipulation;}
+
 </style>
 </head>
 <body>
+<button id="fullscreenBtn" type="button" aria-label="Full screen">⛶ Full Screen</button>
+<script>
+(function(){var b=document.getElementById('fullscreenBtn');function goFull(){var el=document.documentElement;try{var p=el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;if(p&&p.catch)p.catch(function(){});if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(function(){});}}catch(e){}setTimeout(function(){b.style.display=(document.fullscreenElement||document.webkitFullscreenElement)?'none':'block';},250);}b.addEventListener('click',goFull);document.addEventListener('fullscreenchange',function(){b.style.display=document.fullscreenElement?'none':'block';});document.addEventListener('webkitfullscreenchange',function(){b.style.display=document.webkitFullscreenElement?'none':'block';});})();
+</script>
 <div id="hud">
  <div class="pill"><small>SCORE</small><strong id="score">00000</strong></div>
  <div class="pill"><small>DISTANCE</small><strong><span id="distance">0.0</span> <span style="font-size:11px">KM</span></strong></div>
@@ -160,3 +185,4 @@ requestAnimationFrame(animate);addEventListener('resize',()=>{camera.aspect=view
 </script>
 </body>
 </html>
+</td></tr></tbody></table></body></html>
