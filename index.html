@@ -38,6 +38,11 @@ canvas{display:block;touch-action:none}
 #over button{padding:14px 25px;font-size:17px;font-weight:bold;border:0;border-radius:12px;background:#ffd04c;color:#211800}
 #message{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:#111c;color:white;padding:7px 12px;border-radius:20px;font-size:12px;display:none;pointer-events:none}
 @media(max-width:380px){.pill{padding:7px 8px;min-width:65px}.pill strong{font-size:17px}.control{width:50px;height:55px}.pedal{width:43px;height:76px}#steerWheel{width:82px;height:82px}#BOOST{width:53px;height:53px}}
+/* Mobile portrait: rotate the entire existing game into landscape. */
+@media (orientation: portrait) and (max-width: 900px) {
+ html,body {width:100vh;height:100vw;min-height:0;overflow:hidden;}
+ body {position:absolute;top:0;left:100vw;transform:rotate(90deg);transform-origin:top left;}
+}
 </style>
 </head>
 <body>
@@ -65,8 +70,8 @@ canvas{display:block;touch-action:none}
 (()=>{
 if(!window.THREE){document.body.innerHTML='<h2 style="color:white;padding:30px">3D library load nahi hui. Internet check karke reload karo.</h2>';return;}
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x91d1f7);scene.fog=new THREE.Fog(0x9ac9d9,130,370);
-const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,500);camera.position.set(0,6.2,13);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.prepend(renderer.domElement);
+const viewW=()=>Math.max(innerWidth,innerHeight),viewH=()=>Math.min(innerWidth,innerHeight);const camera=new THREE.PerspectiveCamera(62,viewW()/viewH(),.1,500);camera.position.set(0,6.2,13);
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(viewW(),viewH());renderer.domElement.style.width=viewW()+'px';renderer.domElement.style.height=viewH()+'px';renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.prepend(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xd8efff,0x526043,2.2));const sun=new THREE.DirectionalLight(0xfff0d5,3);sun.position.set(-30,45,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
 const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
 const grass=mat(0x285c2d),roadMat=mat(0x30343a,.95),white=mat(0xf7f7ed),railMat=mat(0xb8c4ca,.4,.5),rock=mat(0x7d8a91),water= new THREE.MeshStandardMaterial({color:0x168dc1,roughness:.24,metalness:.25}),glass=mat(0x193c52,.22,.2),black=mat(0x14171b),rim=mat(0xc6d0d5,.3,.6);
@@ -150,7 +155,7 @@ dashes.forEach(d=>{d.position.z+=speed*dt;if(d.position.z>12)d.position.z-=420;}
 scenery.forEach(o=>{o.position.z+=speed*dt;if(o.position.z>25){if(o.userData.isBridge){scene.remove(o);const idx=scenery.indexOf(o);if(idx>=0)scenery.splice(idx,1);const bi=bridges.indexOf(o);if(bi>=0)bridges.splice(bi,1);}else o.position.z-=600;}});
 $('score').textContent=String(Math.floor(score)).padStart(5,'0');$('distance').textContent=distanceKm.toFixed(1);$('speed').textContent=String(Math.round(speed*3.6));$('boostHud').textContent=boosting?boostTime.toFixed(1)+'s':'READY';$('BOOST').style.filter=boosting?'brightness(1.4)':'none';}
 camera.position.x=THREE.MathUtils.lerp(camera.position.x,player.position.x*.42,.05);camera.lookAt(player.position.x*.18,.7,-12);renderer.render(scene,camera);}
-requestAnimationFrame(animate);addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+requestAnimationFrame(animate);addEventListener('resize',()=>{camera.aspect=viewW()/viewH();camera.updateProjectionMatrix();renderer.setSize(viewW(),viewH());renderer.domElement.style.width=viewW()+'px';renderer.domElement.style.height=viewH()+'px';});
 })();
 </script>
 </body>
