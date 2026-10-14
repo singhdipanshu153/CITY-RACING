@@ -1,188 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#101820">
-<link rel="manifest" href="./manifest.json">
-<title>3D Endless Car Racing</title>
-<style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#83c8f4;font-family:Arial,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-canvas{display:block;touch-action:none}
-#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;gap:8px;justify-content:space-between;pointer-events:none;color:#fff;text-shadow:0 2px 5px #000;font-weight:800}
-.pill{background:linear-gradient(135deg,#101a28dd,#26394ddd);border:1px solid #ffffff55;border-radius:14px;padding:9px 12px;min-width:78px;box-shadow:0 4px 15px #0003}
-.pill small{display:block;font-size:10px;letter-spacing:1.2px;color:#c9e4ff;margin-bottom:3px}
-.pill strong{font-size:20px}
-#hint{position:fixed;top:83px;left:50%;transform:translateX(-50%);color:#fff;background:#101a28a8;padding:6px 10px;border-radius:20px;font-size:11px;white-space:nowrap;pointer-events:none}
-#controls{position:fixed;bottom:max(16px,env(safe-area-inset-bottom));left:0;right:0;display:flex;align-items:end;justify-content:space-between;padding:0 16px;gap:10px;pointer-events:none}
-.cluster{display:flex;align-items:center;gap:9px;pointer-events:auto}
-.control{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;border:1px solid #ffffff8c;color:white;background:linear-gradient(145deg,#283c50e8,#101a28e8);box-shadow:0 5px 15px #0005,inset 0 1px #ffffff44;border-radius:50%;width:64px;height:64px;font-weight:800;font-size:13px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.control .symbol{font-size:24px;line-height:25px}
-#steerWheel{width:100px;height:100px;border:7px solid #d9e2e8;background:radial-gradient(circle at 35% 28%,#697d8d,#182634 62%,#080d13);font-size:10px;box-shadow:0 5px 18px #0008,inset 0 0 0 5px #0b1118}
-#steerWheel{position:relative;overflow:hidden;background:transparent;border:0;box-shadow:none;padding:0}
-.wheel-shape{position:relative;display:block;width:100%;height:100%;border:10px solid #111820;border-radius:50%;background:radial-gradient(circle at 50% 50%,#49545d 0 14%,#141b22 15% 26%,transparent 27%);box-shadow:inset 0 0 0 2px #7d8992,0 3px 8px #0009}
-.wheel-shape:before,.wheel-shape:after{content:"";position:absolute;background:linear-gradient(#68757e,#171e25);border:1px solid #8d969d;border-radius:4px;left:calc(50% - 5px);top:8%;width:10px;height:72%;transform-origin:50% 58%}
-.wheel-shape:after{transform:rotate(90deg)}
-.wheel-shape i{position:absolute;z-index:2;left:calc(50% - 13px);top:calc(50% - 13px);width:26px;height:26px;border:3px solid #89949b;border-radius:50%;background:radial-gradient(#505c65,#111820)}
-.wheel-shape b,.wheel-shape em{position:absolute;z-index:1;width:31%;height:16%;bottom:10%;left:10%;border-radius:4px;background:linear-gradient(#64717a,#1b232b);border:1px solid #9aa4aa;transform:rotate(28deg)}
-.wheel-shape em{left:auto;right:10%;transform:rotate(-28deg)}
-.pedal{width:58px;height:94px;border-radius:18px 18px 13px 13px;transform:perspective(120px) rotateX(5deg);border:3px solid #b9c5cc;background:linear-gradient(110deg,#f4f6f6,#78858d 48%,#e8ecee);color:#17212a;box-shadow:0 5px 12px #0008,inset 0 0 0 3px #4d5961}
-.pedal .symbol{font-size:24px;line-height:28px}
-#gas{background:linear-gradient(110deg,#f6f7f7,#9eabb2 48%,#e7ecef)}
-#brake{background:linear-gradient(110deg,#f6f7f7,#9eabb2 48%,#e7ecef)}
-#BOOST{width:62px;height:62px;border-radius:18px;background:linear-gradient(145deg,#ffd75b,#f07b16);color:#211500;border:2px solid #fff3;font-size:11px}
-#BOOST .symbol{font-size:26px}
-#over{display:none;position:fixed;inset:0;background:#06101bd9;color:white;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px}
-#over h1{font-size:40px;margin:0 0 8px;color:#ff5e50}
-#over button{padding:14px 25px;font-size:17px;font-weight:bold;border:0;border-radius:12px;background:#ffd04c;color:#211800}
-#message{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:#111c;color:white;padding:7px 12px;border-radius:20px;font-size:12px;display:none;pointer-events:none}
-@media(max-width:380px){.pill{padding:7px 8px;min-width:65px}.pill strong{font-size:17px}.control{width:50px;height:55px}.pedal{width:43px;height:76px}#steerWheel{width:82px;height:82px}#BOOST{width:53px;height:53px}}
-/* Mobile portrait: rotate the entire existing game into landscape. */
-@media (orientation: portrait) and (max-width: 900px) {
- html,body {width:100vh;height:100vw;min-height:0;overflow:hidden;}
- body {position:absolute;top:0;left:100vw;transform:rotate(90deg);transform-origin:top left;}
-}
-
-/* MOBILE FULLSCREEN PATCH */
-html,body{position:fixed;inset:0;width:100%;height:100%;height:100dvh;margin:0;padding:0;overflow:hidden;overscroll-behavior:none;}
-canvas{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;}
-#hud{top:max(8px,env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));gap:6px;}
-.pill{padding:clamp(5px,1.4vw,9px) clamp(7px,2vw,12px);min-width:0;border-radius:12px;}
-.pill small{font-size:clamp(8px,1.8vw,10px);}
-.pill strong{font-size:clamp(14px,3.8vw,20px);}
-#hint{top:clamp(60px,10vh,83px);font-size:clamp(9px,2vw,11px);max-width:90vw;white-space:normal;text-align:center;}
-#controls{bottom:max(8px,env(safe-area-inset-bottom));padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));gap:6px;}
-.control{width:clamp(46px,9vw,64px);height:clamp(46px,9vw,64px);font-size:clamp(10px,2vw,13px);}
-.control .symbol{font-size:clamp(18px,3.5vw,24px);line-height:1.05;}
-#steerWheel{width:clamp(66px,14vw,100px);height:clamp(66px,14vw,100px);}
-@media (orientation:landscape) and (max-height:500px){
- #hud{top:5px;left:7px;right:7px;} .pill{padding:4px 8px;} .pill small{font-size:8px;margin-bottom:1px;} .pill strong{font-size:14px;}
- #hint{top:48px;font-size:9px;padding:4px 8px;}
- #controls{bottom:max(5px,env(safe-area-inset-bottom));padding-left:8px;padding-right:8px;}
- .control{width:48px;height:48px;} #steerWheel{width:68px;height:68px;}
-}
-#fullscreenBtn{position:fixed;right:max(8px,env(safe-area-inset-right));top:max(60px,calc(env(safe-area-inset-top) + 42px));z-index:10000;border:1px solid #ffffff80;border-radius:10px;background:#101a28cc;color:#fff;padding:7px 9px;font-weight:700;font-size:12px;touch-action:manipulation;}
-
-</style>
-</head>
-<body>
-<button id="fullscreenBtn" type="button" aria-label="Full screen">⛶ Full Screen</button>
-<script>
-(function(){var b=document.getElementById('fullscreenBtn');function goFull(){var el=document.documentElement;try{var p=el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen?el.webkitRequestFullscreen():null;if(p&&p.catch)p.catch(function(){});if(screen.orientation&&screen.orientation.lock){screen.orientation.lock('landscape').catch(function(){});}}catch(e){}setTimeout(function(){b.style.display=(document.fullscreenElement||document.webkitFullscreenElement)?'none':'block';},250);}b.addEventListener('click',goFull);document.addEventListener('fullscreenchange',function(){b.style.display=document.fullscreenElement?'none':'block';});document.addEventListener('webkitfullscreenchange',function(){b.style.display=document.webkitFullscreenElement?'none':'block';});})();
-</script>
-<div id="hud">
- <div class="pill"><small>SCORE</small><strong id="score">00000</strong></div>
- <div class="pill"><small>DISTANCE</small><strong><span id="distance">0.0</span> <span style="font-size:11px">KM</span></strong></div>
- <div class="pill"><small>SPEED</small><strong><span id="speed">90</span> <span style="font-size:11px">KM/H</span></strong></div>
- <div class="pill"><small>BOOST</small><strong id="boostHud">READY</strong></div>
-</div>
-<div id="hint">STEER • BRAKE • BOOST</div>
-<div id="controls">
- <div class="cluster">
-  <button class="control" id="steerWheel" aria-label="Steering wheel"><span class="wheel-shape"><i></i><b></b><em></em></span></button>
- </div>
- <div class="cluster">
-  <button class="control pedal" id="brake" aria-label="Brake pedal"><span class="symbol">▥</span><span>BRAKE</span></button>
-  <button class="control pedal" id="gas" aria-label="Accelerator pedal"><span class="symbol">▥</span><span>RACE</span></button>
-  <button class="control" id="BOOST" aria-label="Boost"><span class="symbol">⚡</span><span>BOOST</span></button>
- </div>
-</div>
-<div id="message"></div>
-<div id="over"><h1>CRASH!</h1><p id="final">Score: 0</p><button id="again">RACE AGAIN</button></div>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script>
-(()=>{
-if(!window.THREE){document.body.innerHTML='<h2 style="color:white;padding:30px">3D library load nahi hui. Internet check karke reload karo.</h2>';return;}
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x91d1f7);scene.fog=new THREE.Fog(0x9ac9d9,130,370);
-const viewW=()=>Math.max(innerWidth,innerHeight),viewH=()=>Math.min(innerWidth,innerHeight);const camera=new THREE.PerspectiveCamera(62,viewW()/viewH(),.1,500);camera.position.set(0,6.2,13);
-const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(viewW(),viewH());renderer.domElement.style.width=viewW()+'px';renderer.domElement.style.height=viewH()+'px';renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.prepend(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xd8efff,0x526043,2.2));const sun=new THREE.DirectionalLight(0xfff0d5,3);sun.position.set(-30,45,25);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
-const mat=(c,r=.8,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const grass=mat(0x285c2d),roadMat=mat(0x30343a,.95),white=mat(0xf7f7ed),railMat=mat(0xb8c4ca,.4,.5),rock=mat(0x7d8a91),water= new THREE.MeshStandardMaterial({color:0x168dc1,roughness:.24,metalness:.25}),glass=mat(0x193c52,.22,.2),black=mat(0x14171b),rim=mat(0xc6d0d5,.3,.6);
-function box(parent,w,h,d,material,x,y,z){let o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
-const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,600),grass);ground.rotation.x=-Math.PI/2;ground.position.set(0,-.18,-180);ground.receiveShadow=true;scene.add(ground);
-box(scene,12,.12,600,roadMat,0,-.04,-190);
-for(const x of [-6,6])box(scene,.15,.03,600,white,x,.04,-190);
-const dashes=[];for(const x of [-2,2])for(let i=0;i<42;i++)dashes.push(box(scene,.09,.025,3,white,x,.04,-i*10));
-for(const x of [-6.6,6.6]){box(scene,.18,.55,600,railMat,x,.4,-190);for(let z=0;z>-580;z-=12)box(scene,.18,.55,.25,black,x,.3,z);}
-const scenery=[];
-function tree(x,z){let g=new THREE.Group();g.position.set(x,0,z);box(g,.28,1.7,.28,mat(0x714525),0,.85,0);for(let i=0;i<3;i++){let c=new THREE.Mesh(new THREE.ConeGeometry(1.15-i*.17,2,8),mat([0x164d25,0x216b30,0x2c7c35][i]));c.position.y=1.8+i*.65;c.castShadow=true;g.add(c);}scene.add(g);scenery.push(g);}
-function building(x,z,w,h,d,color){let g=new THREE.Group();g.position.set(x,0,z);box(g,w,h,d,mat(color,.7,.08),0,h/2,0);let wm=mat(0x9ed9ed,.25,.1);for(let y=1.2;y<h-.5;y+=1.5)for(let xx=-w/2+.45;xx<w/2-.2;xx+=.8)box(g,.25,.55,.035,wm,xx,y,d/2+.025);scene.add(g);scenery.push(g);}
-function mountain(x,z,w,h){let m=new THREE.Mesh(new THREE.ConeGeometry(w,h,7),rock);m.position.set(x,h/2-0.1,z);m.rotation.y=Math.random()*1.5;m.castShadow=true;scene.add(m);scenery.push(m);}
-for(let z=5;z>-570;z-=7){tree(-8.7-Math.random()*5,z);tree(8.7+Math.random()*5,z-3);tree(-14-Math.random()*4,z-2);tree(14+Math.random()*4,z-5);if(z%48===5){building(-17-Math.random()*5,z-18,4+Math.random()*3,8+Math.random()*15,5,[0xd95d39,0x368bc5,0xf0b832,0xe7e1d2,0x9d5ac4,0x3e9a71][Math.floor(Math.random()*6)]);building(17+Math.random()*5,z-35,4+Math.random()*3,10+Math.random()*17,5,[0xe87942,0x338bba,0xf0c13c,0xd9e2e7,0xc15a77,0x54a66b][Math.floor(Math.random()*6)]);}if(z%72===5){mountain(-27,z-25,12+Math.random()*6,14+Math.random()*15);mountain(28,z-52,13+Math.random()*6,17+Math.random()*14);}}
-/* River appears beneath the bridge only; no permanent river beside the road. */
-const bridges=[];
-let distanceKm=0,nextBridgeKm=10;
-function makeSuspensionBridge(z){
- const g=new THREE.Group();g.position.set(0,0,z);
- const riverbed=new THREE.Mesh(new THREE.PlaneGeometry(48,58),water);riverbed.rotation.x=-Math.PI/2;riverbed.position.set(0,-.12,0);g.add(riverbed);
- const steel=mat(0x46515b,.38,.65),cable=mat(0x29333b,.35,.6),deck=mat(0x555b60,.85,.15);
- // Large steel towers stand on both sides of the road; cross beams span above the car.
- for(const x of [-5.8,5.8]){
-  box(g,.55,10,.65,steel,x,5,0);
-  box(g,1.15,.55,.75,steel,x,9.2,0);
-  box(g,.35,2.8,.45,steel,x,7.5,0);
-  for(let zz=-2;zz<=2;zz+=2)box(g,.12,6,.12,cable,x,3,-zz);
- }
- for(const y of [6.8,9.2])box(g,12.2,.45,.65,steel,0,y,0);
- // Two receding portal frames make the bridge feel long, like the reference photo.
- for(const zz of [-11,-7,-3,3,7,11]){
-  for(const x of [-5.8,5.8])box(g,.22,8,.25,steel,x,4,zz);
-  box(g,11.8,.22,.28,steel,0,8,zz);
- }
- // Suspension cables running toward the far end of the bridge.
- for(const side of [-1,1]){
-  const curve=new THREE.CatmullRomCurve3([
-   new THREE.Vector3(side*5.8,9.1,12),
-   new THREE.Vector3(side*5.1,7.6,5),
-   new THREE.Vector3(side*4.8,6.2,-2),
-   new THREE.Vector3(side*5.1,7.6,-9),
-   new THREE.Vector3(side*5.8,9.1,-14)
-  ]);
-  g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,32,.07,6,false),cable));
- }
- box(g,12,.12,30,deck,0,.08,-1);
- g.userData.isBridge=true;scene.add(g);bridges.push(g);scenery.push(g);
-}
-
-function makeCar(color){let g=new THREE.Group(),paint=mat(color,.25,.4);box(g,1.7,.48,3.2,paint,0,.65,0);box(g,1.48,.25,1.05,paint,0,.89,-.98);box(g,1.2,.62,1.48,glass,0,1.15,.05);box(g,1.43,.12,.18,paint,0,1.49,.05);box(g,1.46,.12,.35,black,0,.42,1.48);for(const x of [-.88,.88])for(const z of [-.98,.98]){let wh=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.23,16),black);wh.rotation.z=Math.PI/2;wh.position.set(x,.42,z);g.add(wh);let ri=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.24,12),rim);ri.rotation.z=Math.PI/2;ri.position.set(x*1.01,.42,z);g.add(ri);box(g,.38,.13,.08,mat(0xfff4cb,.2),x*.72,.72,-1.61);box(g,.4,.13,.08,mat(0xff1717,.2),x*.72,.72,1.61);}return g;}
-const player=makeCar(0xe51b23);player.position.set(0,0,5);scene.add(player);
-const traffic=[],colors=[0x167be0,0xf4c52b,0xe9e9e9,0x18a45a,0x9956d5,0xe76b27];
-function spawnTraffic(){if(traffic.length>=5)return;let lane=[-4,0,4][Math.floor(Math.random()*3)];if(traffic.some(c=>Math.abs(c.position.x-lane)<.2&&c.position.z< -65))return;let c=makeCar(colors[Math.floor(Math.random()*colors.length)]);c.position.set(lane,0,-120);c.userData.speed=16+Math.random()*8;scene.add(c);traffic.push(c);}
-let score=0,speed=25,running=true,spawnTimer=0,boosting=false,boostTime=0,steer=0,braking=false,accelerating=false;const $=id=>document.getElementById(id);
-function setSteer(v){steer=v;}
-function bindHold(id,down,up){const b=$(id);b.addEventListener('pointerdown',e=>{e.preventDefault();down();});['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault?.();up();}));}
-// Realistic steering wheel: drag around the circular wheel to turn it.
-const wheel=$('steerWheel');let wheelPointer=null,wheelCenter={x:0,y:0},wheelStartAngle=0,wheelBaseAngle=0,wheelAngle=0;
-function pointerAngle(e){return Math.atan2(e.clientY-wheelCenter.y,e.clientX-wheelCenter.x)*180/Math.PI;}
-wheel.addEventListener('pointerdown',e=>{e.preventDefault();wheelPointer=e.pointerId;const r=wheel.getBoundingClientRect();wheelCenter={x:r.left+r.width/2,y:r.top+r.height/2};wheelStartAngle=pointerAngle(e);wheelBaseAngle=wheelAngle;wheel.setPointerCapture(e.pointerId);});
-wheel.addEventListener('pointermove',e=>{if(wheelPointer!==e.pointerId)return;e.preventDefault();let delta=pointerAngle(e)-wheelStartAngle;if(delta>180)delta-=360;if(delta< -180)delta+=360;wheelAngle=THREE.MathUtils.clamp(wheelBaseAngle+delta,-135,135);wheel.style.transform=`rotate(${wheelAngle}deg)`;steer=THREE.MathUtils.clamp(wheelAngle/55,-1,1);});
-function releaseWheel(e){if(wheelPointer===e.pointerId){wheelPointer=null;steer=0;wheelAngle=0;wheel.style.transform='rotate(0deg)';}}
-['pointerup','pointercancel','lostpointercapture'].forEach(ev=>wheel.addEventListener(ev,releaseWheel));
-bindHold('brake',()=>braking=true,()=>braking=false);
-bindHold('gas',()=>{accelerating=true;},()=>{accelerating=false;});
-$('BOOST').addEventListener('pointerdown',e=>{e.preventDefault();if(running&&!boosting){boosting=true;boostTime=3;score+=100;}});
-addEventListener('contextmenu',e=>{if(e.target.closest('#controls'))e.preventDefault();});
-document.querySelectorAll('#controls button').forEach(b=>{b.addEventListener('contextmenu',e=>e.preventDefault());b.addEventListener('dragstart',e=>e.preventDefault());});
-document.addEventListener('selectstart',e=>{if(e.target.closest('#controls'))e.preventDefault();});
-addEventListener('keydown',e=>{if(['ArrowLeft','a','A'].includes(e.key)){steer=-1;e.preventDefault();}if(['ArrowRight','d','D'].includes(e.key)){steer=1;e.preventDefault();}if(['ArrowDown','s','S',' '].includes(e.key)){braking=true;e.preventDefault();}if(['ArrowUp','w','W'].includes(e.key)&&!boosting){boosting=true;boostTime=2;}});
-addEventListener('keyup',e=>{if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key))steer=0;if(['ArrowDown','s','S',' '].includes(e.key))braking=false;});
-function crash(){if(!running)return;running=false;$('final').textContent='Score: '+Math.floor(score)+'  •  Distance: '+Math.floor(score/10)+' km';$('over').style.display='flex';}
-$('again').onclick=()=>{traffic.forEach(c=>scene.remove(c));traffic.length=0;player.position.x=0;score=0;distanceKm=0;nextBridgeKm=10;$('distance').textContent='0.0';speed=25;spawnTimer=0;bridges.forEach(b=>{scene.remove(b);const i=scenery.indexOf(b);if(i>=0)scenery.splice(i,1);});bridges.length=0;running=true;boosting=false;braking=false;accelerating=false;steer=0;wheelAngle=0;wheel.style.transform='rotate(0deg)';$('over').style.display='none';last=performance.now();};
-let last=performance.now();
-function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.04);last=now;
-if(running){score+=dt*(braking?0.7:2.5);distanceKm+=speed*dt/1000;if(distanceKm>=nextBridgeKm){makeSuspensionBridge(-260);nextBridgeKm+=10;}if(boosting){speed=braking?22:52;boostTime-=dt;if(boostTime<=0)boosting=false;}else speed=braking?Math.max(12,speed-35*dt):Math.min(accelerating?48:38,speed+(accelerating?13:5)*dt);
-player.position.x=THREE.MathUtils.clamp(player.position.x+steer*dt*(braking?5:8),-4.35,4.35);player.rotation.z=THREE.MathUtils.lerp(player.rotation.z,-steer*.09,.15);
-spawnTimer+=dt;if(spawnTimer>1.45){spawnTraffic();spawnTimer=0;}
-for(let i=traffic.length-1;i>=0;i--){const c=traffic[i];c.position.z+=(speed-c.userData.speed)*dt+speed*dt*.6;if(Math.abs(c.position.z-player.position.z)<2.2&&Math.abs(c.position.x-player.position.x)<1.5)crash();if(c.position.z>18){scene.remove(c);traffic.splice(i,1);}}
-dashes.forEach(d=>{d.position.z+=speed*dt;if(d.position.z>12)d.position.z-=420;});
-scenery.forEach(o=>{o.position.z+=speed*dt;if(o.position.z>25){if(o.userData.isBridge){scene.remove(o);const idx=scenery.indexOf(o);if(idx>=0)scenery.splice(idx,1);const bi=bridges.indexOf(o);if(bi>=0)bridges.splice(bi,1);}else o.position.z-=600;}});
-$('score').textContent=String(Math.floor(score)).padStart(5,'0');$('distance').textContent=distanceKm.toFixed(1);$('speed').textContent=String(Math.round(speed*3.6));$('boostHud').textContent=boosting?boostTime.toFixed(1)+'s':'READY';$('BOOST').style.filter=boosting?'brightness(1.4)':'none';}
-camera.position.x=THREE.MathUtils.lerp(camera.position.x,player.position.x*.42,.05);camera.lookAt(player.position.x*.18,.7,-12);renderer.render(scene,camera);}
-requestAnimationFrame(animate);addEventListener('resize',()=>{camera.aspect=viewW()/viewH();camera.updateProjectionMatrix();renderer.setSize(viewW(),viewH());renderer.domElement.style.width=viewW()+'px';renderer.domElement.style.height=viewH()+'px';});
-})();
-</script>
-</body>
-</html>
-</td></tr></tbody></table></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102a43"><title>CommitteeMate</title><style>
+:root{--navy:#102a43;--blue:#1769aa;--bg:#f3f6fa;--border:#dbe3ec}*{box-sizing:border-box}body{margin:0;font:15px system-ui;background:var(--bg);color:#182230}header{background:var(--navy);color:white;padding:18px 16px;position:sticky;top:0}main{max-width:850px;margin:auto;padding:14px}h1{font-size:21px;margin:0}h2{font-size:17px;margin:0 0 12px}.panel{background:white;border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px 0}.muted{color:#64748b;font-size:13px}.hidden{display:none!important}label{display:block;font-size:13px;margin:10px 0 5px}input,button{font:inherit;width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:10px;background:white}button{background:var(--blue);border:0;color:white;font-weight:650;margin-top:10px}button.secondary{background:#e8eef5;color:#18324a}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.stat{padding:14px;border-radius:13px;background:#eef5fb}.stat b{display:block;font-size:22px}.pill{display:inline-block;padding:4px 9px;border-radius:99px;font-size:12px;background:#edf2f7}.paid{background:#d8f5e5;color:#12643e}.pending{background:#fff0c2;color:#875b00}.partial{background:#ffe4d6;color:#9a3412}.item{border-top:1px solid var(--border);padding:12px 0}.notice{background:#fff7db;padding:11px;border-radius:10px;font-size:13px}.error{color:#c0392b;white-space:pre-wrap}.success{color:#138a55}.wheel{border:4px solid #d8e8f8;border-radius:50%;width:min(72vw,280px);height:min(72vw,280px);display:flex;align-items:center;justify-content:center;margin:16px auto;background:conic-gradient(#f8c15c 0 60deg,#8bd5ca 60deg 120deg,#8db8f5 120deg 180deg,#e8a6c8 180deg 240deg,#b8dfa0 240deg 300deg,#c3b3f2 300deg 360deg);text-align:center;padding:30px;font-weight:800}nav{display:flex;gap:7px;overflow:auto;padding:8px 0}nav button{white-space:nowrap;width:auto;margin:0;padding:9px 12px}nav button.active{background:#102a43}.small{width:auto;padding:7px 10px;font-size:12px}.footer{text-align:center;color:#64748b;font-size:12px;padding:20px}@media(min-width:620px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style></head><body><header><h1>🎯 CommitteeMate</h1><div class="muted" style="color:#d7e3ee">Monthly committee • member records • UPI payments</div></header><main><section id="login" class="panel"><h2>Login to your committee</h2><p class="muted">Use the username and password provided by your admin.</p><label>Username (admin can use email)</label><input id="username" autocomplete="username" placeholder="e.g. dipu or admin email"><label>Password</label><input id="password" type="password" autocomplete="current-password"><button id="loginBtn">Login</button><div id="loginMsg" class="error"></div><p class="muted">New member? Ask your admin to create your login.</p></section><section id="app" class="hidden"><div class="row"><div><b id="hello">Welcome</b><div id="roleLabel" class="muted"></div></div><button id="logoutBtn" class="secondary" style="flex:0 0 auto;width:auto">Log out</button></div><nav id="tabs"></nav><div id="view"></div></section><div class="footer">UPI payments are not auto-verified. Admin must check the actual transaction.</div></main>
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js';import{getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,onAuthStateChanged}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js';import{getFirestore,doc,getDoc,collection,query,where,getDocs,addDoc,updateDoc,setDoc,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js';
+// Paste Firebase web config here before deployment.
+const firebaseConfig={apiKey:'AIzaSyCYZTMrtRtqLQztceOWd_vH9syvoP9kP_i7Q',authDomain:'committeemate01.firebaseapp.com',projectId:'committeemate01',storageBucket:'committeemate01.firebasestorage.app',messagingSenderId:'33242480535',appId:'1:33242480535:web:2cfe3a61862568a19aced2'};const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app),memberApp=initializeApp(firebaseConfig,'memberCreator'),memberAuth=getAuth(memberApp);const $=id=>document.getElementById(id);let user=null,profile=null,tab='home',members=[],payments=[],settings={};const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');const monthNow=()=>{let d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const emailFor=u=>{const value=String(u).trim().toLowerCase();return value.includes('@')?value:`${value}@login.committeemate.invalid`};function message(id,t,cls='error'){$(id).className=cls;$(id).textContent=t}function err(e){return e?.code==='auth/invalid-credential'?'Username or password is incorrect.':(e?.message||'Something went wrong.')}const admin=()=>profile?.role==='admin';
+$('loginBtn').onclick=async()=>{try{message('loginMsg','Signing in…','muted');await signInWithEmailAndPassword(auth,emailFor($('username').value),$('password').value)}catch(e){message('loginMsg',err(e))}};$('logoutBtn').onclick=()=>signOut(auth);onAuthStateChanged(auth,async u=>{user=u;if(!u){$('login').classList.remove('hidden');$('app').classList.add('hidden');return}try{let s=await getDoc(doc(db,'users',u.uid));if(!s.exists())throw Error('Profile not set up. Ask admin.');profile=s.data();if(!['admin','member'].includes(profile.role))throw Error('Invalid role.');$('login').classList.add('hidden');$('app').classList.remove('hidden');$('hello').textContent='Hi, '+(profile.displayName||profile.username||'there');$('roleLabel').textContent=admin()?'Administrator':'Member account';tab='home';await refresh();drawTabs();render()}catch(e){await signOut(auth);$('login').classList.remove('hidden');message('loginMsg',err(e))}});
+async function refresh(){let s=await getDoc(doc(db,'settings','main'));settings=s.exists()?s.data():{};if(admin()){let [m,p]=await Promise.all([getDocs(collection(db,'members')),getDocs(collection(db,'payments'))]);members=m.docs.map(d=>({id:d.id,...d.data()}));payments=p.docs.map(d=>({id:d.id,...d.data()}))}else{let m=await getDoc(doc(db,'members',profile.memberId));members=m.exists()?[{id:m.id,...m.data()}]:[];let p=await getDocs(query(collection(db,'payments'),where('memberUid','==',user.uid)));payments=p.docs.map(d=>({id:d.id,...d.data()}))}}
+function tabList(){return admin()?[['home','Dashboard'],['members','Members'],['payments','Payments'],['wheel','Winner wheel'],['settings','Settings']]:[['home','My dashboard'],['payments','My payments'],['pay','Pay admin']]};function drawTabs(){$('tabs').innerHTML=tabList().map(([id,t])=>`<button class="${id===tab?'active':''}" data-tab="${id}">${t}</button>`).join('');$('tabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;drawTabs();render()})}function render(){let v=$('view');if(tab==='home')return home(v);if(tab==='members'&&admin())return memberView(v);if(tab==='payments')return paymentView(v);if(tab==='pay'&&!admin())return payView(v);if(tab==='wheel'&&admin())return wheelView(v);if(tab==='settings'&&admin())return settingsView(v);home(v)}
+function home(v){let ex=payments.reduce((a,p)=>a+Number(p.dueAmount||0),0),rec=payments.reduce((a,p)=>a+Number(p.receivedAmount||0),0);v.innerHTML=`<div class="grid"><div class="stat"><span class="muted">${admin()?'Members':'Your record'}</span><b>${admin()?members.length:esc(members[0]?.name||'Not linked')}</b></div><div class="stat"><span class="muted">Expected</span><b>${money(ex)}</b></div><div class="stat"><span class="muted">Received</span><b>${money(rec)}</b></div><div class="stat"><span class="muted">Pending</span><b>${money(Math.max(0,ex-rec))}</b></div></div><div class="panel"><h2>${admin()?'Quick actions':'Your committee status'}</h2>${admin()?'<button id="goMembers">＋ Add member</button><button id="goDues" class="secondary">＋ Create monthly dues</button>':`<p>Monthly contribution: <b>${money(members[0]?.monthlyAmount)}</b></p><p>Due day: <b>${esc(members[0]?.dueDay||'Not set')}</b></p><button id="goPay">Pay admin by UPI</button>`}</div>`;if(admin()){$('goMembers').onclick=()=>{tab='members';drawTabs();render()};$('goDues').onclick=createDues}else $('goPay').onclick=()=>{tab='pay';drawTabs();render()}}
+function memberView(v){v.innerHTML=`<div class="panel"><h2>Add member (maximum 20)</h2><div class="row"><div><label>Full name</label><input id="mName"></div><div><label>Username (3–24 chars)</label><input id="mUser"></div></div><div class="row"><div><label>Temporary password (6+ chars)</label><input id="mPass" type="password"></div><div><label>Monthly amount ₹</label><input id="mAmount" type="number" min="1"></div></div><div class="row"><div><label>Due day (1–28)</label><input id="mDue" type="number" min="1" max="28" value="5"></div><div><label>Phone (optional)</label><input id="mPhone"></div></div><button id="addMember">Create member login</button><div id="memberMsg" class="muted"></div></div><div class="panel"><h2>Members (${members.length}/20)</h2>${members.map(m=>`<div class="item"><b>${esc(m.name)}</b> <span class="pill">${money(m.monthlyAmount)}/month</span><div class="muted">Username: ${esc(m.username)} • Due day: ${esc(m.dueDay)}</div></div>`).join('')||'No members yet.'}</div>`;$('addMember').onclick=async()=>{try{if(members.length>=20)throw Error('Maximum 20 members.');let p={name:$('mName').value.trim(),username:$('mUser').value.trim().toLowerCase(),password:$('mPass').value,monthlyAmount:Number($('mAmount').value),dueDay:Number($('mDue').value),phone:$('mPhone').value.trim()};if(!p.name||!p.username||p.password.length<6||p.monthlyAmount<=0||p.dueDay<1||p.dueDay>28)throw Error('Fill required fields; password 6+ chars; due day 1–28.');message('memberMsg','Creating account…','muted');const cred=await createUserWithEmailAndPassword(memberAuth,emailFor(p.username),p.password);const uid=cred.user.uid;await setDoc(doc(db,'users',uid),{role:'member',username:p.username,displayName:p.name,memberId:uid});await setDoc(doc(db,'members',uid),{uid,name:p.name,username:p.username,monthlyAmount:p.monthlyAmount,dueDay:p.dueDay,phone:p.phone,lastWinnerCycle:null});await signOut(memberAuth);await refresh();render();message('memberMsg','Member created. Share login details privately.','success')}catch(e){message('memberMsg',err(e))}}}
+async function createDues(){try{let month=prompt('Month YYYY-MM',monthNow());if(!month||!/^[0-9]{4}-[0-9]{2}$/.test(month))return;let n=0;for(let m of members){if(!payments.some(p=>p.memberUid===m.uid&&p.month===month)){await addDoc(collection(db,'payments'),{memberUid:m.uid,memberId:m.id,month,dueAmount:Number(m.monthlyAmount||0),receivedAmount:0,status:'pending',createdAt:serverTimestamp()});n++}}await refresh();render();alert(`Created ${n} monthly dues.`)}catch(e){alert(err(e))}}
+function paymentView(v){v.innerHTML=`<div class="panel">${admin()?`<h2>All member payments</h2><button id="createDues">Create dues for ${monthNow()}</button>`:'<h2>Your monthly payments</h2>'}${payments.slice().sort((a,b)=>(b.month||'').localeCompare(a.month||'')).map(p=>{let m=members.find(x=>x.uid===p.memberUid);return `<div class="item"><div class="row"><div><b>${esc(admin()?(m?.name||'Member'):p.month)}</b><div class="muted">${esc(p.month)} • Due ${money(p.dueAmount)} • Received ${money(p.receivedAmount)}</div></div><span class="pill ${esc(p.status||'pending')}">${esc((p.status||'pending').toUpperCase())}</span></div>${admin()?`<button class="small secondary" data-edit="${p.id}">Update amount/status</button>`:''}</div>`}).join('')||'<p class="muted">No payments yet.</p>'}</div>${admin()?'<div class="panel"><h2>UPI payment references</h2><div id="requests">Loading…</div></div>':''}`;if(admin()){$('createDues').onclick=createDues;$('view').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editPayment(b.dataset.edit));loadRequests()}}
+async function editPayment(id){let p=payments.find(x=>x.id===id);let n=prompt('Amount received ₹',p?.receivedAmount||0);if(n===null)return;n=Number(n);if(!p||!Number.isFinite(n)||n<0||n>Number(p.dueAmount))return alert('Invalid amount.');await updateDoc(doc(db,'payments',id),{receivedAmount:n,status:n===0?'pending':n<Number(p.dueAmount)?'partial':'paid',verifiedBy:user.uid,verifiedAt:serverTimestamp()});await refresh();render()}
+function payView(v){let m=members[0];v.innerHTML=`<div class="panel"><h2>Pay monthly contribution</h2><p>Monthly amount: <b>${money(m?.monthlyAmount)}</b></p><p>Admin UPI ID: <b>${esc(settings.adminUpi||'Not configured')}</b></p><div class="notice">After paying, submit the UPI reference. Payment stays pending until admin verifies it in their bank/UPI app.</div><button id="upiBtn" ${settings.adminUpi?'':'disabled'}>Open UPI app</button><label>Month (YYYY-MM)</label><input id="payMonth" value="${monthNow()}"><label>Amount paid ₹</label><input id="payAmount" type="number" value="${m?.monthlyAmount||''}"><label>UPI transaction reference / UTR</label><input id="payRef"><button id="submitRef">Submit payment reference</button><div id="payMsg" class="muted"></div></div>`;$('upiBtn').onclick=()=>location.href=`upi://pay?pa=${encodeURIComponent(settings.adminUpi)}&pn=Committee%20Admin&am=${encodeURIComponent($('payAmount').value)}&cu=INR&tn=${encodeURIComponent('Committee '+$('payMonth').value)}`;$('submitRef').onclick=async()=>{try{let ref=$('payRef').value.trim(),month=$('payMonth').value,amount=Number($('payAmount').value);if(!ref||!/^[0-9]{4}-[0-9]{2}$/.test(month)||amount<=0)throw Error('Enter month, amount and transaction reference.');await addDoc(collection(db,'paymentRequests'),{memberUid:user.uid,memberId:profile.memberId,month,amount,reference:ref,status:'submitted',createdAt:serverTimestamp()});message('payMsg','Reference submitted. Admin must verify the transaction.','success')}catch(e){message('payMsg',err(e))}}
+async function loadRequests(){try{let q=await getDocs(query(collection(db,'paymentRequests'),where('status','==','submitted')));$('requests').innerHTML=q.docs.map(d=>{let r=d.data(),m=members.find(x=>x.uid===r.memberUid);return `<div class="item"><b>${esc(m?.name||'Member')} • ${esc(r.month)}</b><div class="muted">${money(r.amount)} • Ref: ${esc(r.reference)}</div><button class="small" data-verify="${d.id}">Verify and mark received</button></div>`}).join('')||'<p class="muted">No submitted references.</p>';$('requests').querySelectorAll('[data-verify]').forEach(b=>b.onclick=async()=>{let r=q.docs.find(d=>d.id===b.dataset.verify).data();if(!confirm('Only confirm after checking your actual bank/UPI transaction. Mark received?'))return;let p=payments.find(x=>x.memberUid===r.memberUid&&x.month===r.month);if(p){let n=Math.min(Number(p.dueAmount),Number(p.receivedAmount||0)+Number(r.amount));await updateDoc(doc(db,'payments',p.id),{receivedAmount:n,status:n>=Number(p.dueAmount)?'paid':'partial',verifiedBy:user.uid,verifiedAt:serverTimestamp()})}else await addDoc(collection(db,'payments'),{memberUid:r.memberUid,memberId:r.memberId,month:r.month,dueAmount:r.amount,receivedAmount:r.amount,status:'paid',verifiedBy:user.uid,verifiedAt:serverTimestamp()});await updateDoc(doc(db,'paymentRequests',b.dataset.verify),{status:'verified',verifiedBy:user.uid,verifiedAt:serverTimestamp()});await refresh();render()})}catch(e){$('requests').textContent=err(e)}}
+async function wheelView(v){let cycle=settings.cycleId||'cycle-1',eligible=members.filter(m=>m.lastWinnerCycle!==cycle);v.innerHTML=`<div class="panel"><h2>Monthly winner wheel</h2><p class="muted">Eligible members this cycle: ${eligible.length}</p><div class="wheel" id="wheelFace">Spin to choose<br>one eligible member</div><button id="spinBtn" ${eligible.length?'':'disabled'}>SPIN THE WHEEL</button><div id="winnerMsg" class="muted"></div><h3>Winner history</h3><div id="history">Loading…</div><button id="newCycle" class="secondary">Start new cycle</button></div>`;loadHistory();$('spinBtn').onclick=async()=>{if(!eligible.length)return;let w=eligible[Math.floor(Math.random()*eligible.length)];await addDoc(collection(db,'winners'),{memberId:w.id,memberUid:w.uid,name:w.name,cycleId:cycle,month:monthNow(),selectedBy:user.uid,createdAt:serverTimestamp()});await updateDoc(doc(db,'members',w.id),{lastWinnerCycle:cycle});message('winnerMsg','Winner: '+w.name,'success');await refresh();render()};$('newCycle').onclick=async()=>{if(!confirm('Start a new cycle and reset eligibility?'))return;await setDoc(doc(db,'settings','main'),{...settings,cycleId:'cycle-'+Date.now()},{merge:true});for(let m of members)await updateDoc(doc(db,'members',m.id),{lastWinnerCycle:null});await refresh();render()}}
+async function loadHistory(){try{let q=await getDocs(collection(db,'winners'));$('history').innerHTML=q.docs.map(d=>d.data()).sort((a,b)=>(b.month||'').localeCompare(a.month||'')).map(w=>`<div class="item"><b>${esc(w.name)}</b><div class="muted">${esc(w.month)} • ${esc(w.cycleId)}</div></div>`).join('')||'No winners yet.'}catch(e){$('history').textContent=err(e)}}
+function settingsView(v){v.innerHTML=`<div class="panel"><h2>Committee settings</h2><label>Admin UPI ID (VPA)</label><input id="adminUpi" placeholder="yourname@upi" value="${esc(settings.adminUpi||'')}"><label>Committee cycle ID</label><input id="cycleId" value="${esc(settings.cycleId||'cycle-1')}"><button id="saveSettings">Save settings</button><div id="settingsMsg" class="muted"></div></div><div class="notice">UPI deep links do not verify payment. Never share private credentials.</div>`;$('saveSettings').onclick=async()=>{try{let upi=$('adminUpi').value.trim();if(upi&&!/^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/.test(upi))throw Error('Check UPI ID format.');await setDoc(doc(db,'settings','main'),{adminUpi:upi,cycleId:$('cycleId').value.trim()||'cycle-1'},{merge:true});await refresh();message('settingsMsg','Saved.','success')}catch(e){message('settingsMsg',err(e))}}
+</script></body></html>
